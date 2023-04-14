@@ -1,10 +1,20 @@
 from http.client import HTTPConnection
+from urllib.parse import urlparse
 
-connection = HTTPConnection("indicium.tech",port = 80, timeout = 10)
-connection.request("HEAD","/")
 
-response = connection.getresponse()
-response.getheaders()
-[('Date', 'Tue, 20 Sep 2022 18:10:37 GMT'), ('Content-Type', 'text/html'), ('Content-Length', '178'), 
- ('Connection', 'keep-alive'), ('Cache-Control', 'max-age=600'), ('Location', 'https://www.globo.com/')]
+def site_is_online(url,timeout = 2):
+    error = Exception("Ops, something went wrong")
+    parser = urlparse(url)
+    host = parser.netloc or parser.path.split("/")[0]
+    
+    for port in (80,443):    
+        connection = HTTPConnection(host = host,port = port, timeout = timeout)
+        try:
+            connection.request("HEAD","/")
+            return True
+        except Exception as e:
+            error = e
+        finally:
+            connection.close()
+    raise error
 
